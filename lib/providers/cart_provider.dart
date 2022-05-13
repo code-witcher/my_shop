@@ -22,15 +22,23 @@ class Cart {
 
 class CartProvider with ChangeNotifier {
   Map<String, Cart> _cart = {};
+  String? _token;
+  String? _userId;
 
   Map<String, Cart> get carts {
     return {..._cart};
   }
 
+  void update(String? token, String? userId, Map<String, Cart> carts) {
+    _cart = carts;
+    _token = token;
+    _userId = userId;
+  }
+
   Future<void> fetchData() async {
     final url = Uri.parse(
         'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/'
-        'carts.json');
+        'carts/$_userId.json?auth=$_token');
     final response = await http.get(url);
     if (json.decode(response.body) == null) {
       return;
@@ -66,7 +74,7 @@ class CartProvider with ChangeNotifier {
     if (_cart.containsKey(productId)) {
       final url = Uri.parse(
           'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/'
-          'carts/$productId/${_cart[productId]?.id}.json');
+          'carts/$_userId/$productId/${_cart[productId]?.id}.json?auth=$_token');
 
       final response = await http.patch(url,
           body: json.encode({'quantity': _cart[productId]!.quantity + 1}));
@@ -88,7 +96,7 @@ class CartProvider with ChangeNotifier {
     } else {
       final url = Uri.parse(
           'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/'
-          'carts/$productId.json');
+          'carts/$_userId/$productId.json?auth=$_token');
       final response = await http.post(
         url,
         body: json.encode({
@@ -99,6 +107,7 @@ class CartProvider with ChangeNotifier {
           'date': dateNow.toIso8601String(),
         }),
       );
+      print(json.decode(response.body));
       _cart.putIfAbsent(
         productId,
         () => Cart(
@@ -117,7 +126,7 @@ class CartProvider with ChangeNotifier {
   Future<void> delete(String productId) async {
     final url = Uri.parse(
         'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/'
-        'carts/$productId/${_cart[productId]?.id}.json');
+        'carts/$_userId/$_userId/$productId/${_cart[productId]?.id}.json?auth=$_token');
 
     if (_cart.containsKey(productId)) {
       final response = await http.delete(url);
@@ -133,7 +142,7 @@ class CartProvider with ChangeNotifier {
   Future<void> deleteOneItem(String productId) async {
     final url = Uri.parse(
         'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/'
-        'carts/$productId/${_cart[productId]?.id}.json');
+        'carts/$productId/${_cart[productId]?.id}.json?auth=$_token');
     if (!_cart.containsKey(productId)) {
       return;
     }
@@ -185,7 +194,7 @@ class CartProvider with ChangeNotifier {
   Future<void> clearCart() async {
     final url = Uri.parse(
         'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/'
-        'carts.json');
+        'carts.json?auth=$_token');
     final response = await http.delete(url);
     if (!(response.statusCode >= 400)) {
       _cart.clear();

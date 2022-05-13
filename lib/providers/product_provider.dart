@@ -19,16 +19,14 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  Future<void> toggleFavorites() async {
+  Future<void> toggleFavorites(String? token, String? userId) async {
     final url = Uri.parse('https://glitter-15a40-default-rtdb.europe-west1.'
-        'firebasedatabase.app/products/$id.json');
+        'firebasedatabase.app/userFav/$userId/$id.json?auth=$token');
     isFavorite = !isFavorite;
     notifyListeners();
-    final response = await http.patch(
+    final response = await http.put(
       url,
-      body: json.encode({
-        'isFavorite': isFavorite,
-      }),
+      body: json.encode(isFavorite),
     );
     if (response.statusCode >= 400) {
       isFavorite = !isFavorite;
@@ -40,31 +38,51 @@ class Product with ChangeNotifier {
 
 class ProductsProvider with ChangeNotifier {
   List<Product> _products = [];
+  String? _token;
+  String? _userId;
 
   List<Product> get products {
     return [..._products];
   }
 
-  Future<void> fetchProducts() async {
-    final url = Uri.parse(
-        'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/products.json');
+  void update(String? token, String? userId, List<Product> products) {
+    _products = products;
+    _token = token;
+    _userId = userId;
+  }
+
+  Future<void> fetchProducts([bool filter = false]) async {
+    final segmentFilter =
+        filter ? 'orderBy="creatorId"&equalTo="$_userId"' : '';
+    var url = Uri.parse(
+        'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/'
+        'products.json?auth=$_token&$segmentFilter');
 
     final response = await http.get(url);
     final data = json.decode(response.body) as Map<String, dynamic>;
-    final List<Product> _loadedProducts = [];
-    // this is to be safe from errors if there was nothing on the server.
     if (data == null) {
       return;
     }
-    data.forEach((key, value) {
+
+    url = Uri.parse('https://glitter-15a40-default-rtdb.europe-west1.'
+        'firebasedatabase.app/userFav/$_userId.json?auth=$_token');
+    final fav = await http.get(url);
+
+    final userFav = json.decode(fav.body);
+
+    final List<Product> _loadedProducts = [];
+    // this is to be safe from errors if there was nothing on the server.
+
+    data.forEach((prodId, value) {
       _loadedProducts.add(
         Product(
-            id: key,
-            title: value['title'],
-            description: value['description'],
-            price: value['price'],
-            imageUrl: value['image'],
-            isFavorite: value['isFavorite']),
+          id: prodId,
+          title: value['title'],
+          description: value['description'],
+          price: value['price'],
+          imageUrl: value['image'],
+          isFavorite: userFav == null ? false : userFav[prodId] ?? false,
+        ),
       );
     });
     _products = _loadedProducts;
@@ -73,17 +91,18 @@ class ProductsProvider with ChangeNotifier {
 
   Future<void> addProduct(Product newProduct) async {
     final url = Uri.parse(
-      'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/products.json',
+      'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/'
+      'products.json?auth=$_token',
     );
     final response = await http.post(
       url,
       body: json.encode(
         {
+          'creatorId': _userId,
           'title': newProduct.title,
           'price': newProduct.price,
           'description': newProduct.description,
           'image': newProduct.imageUrl,
-          'isFavorite': newProduct.isFavorite,
         },
       ),
     );
@@ -102,7 +121,8 @@ class ProductsProvider with ChangeNotifier {
 
   Future<void> updateProduct(String id, Product newProduct) async {
     final url = Uri.parse(
-      'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json',
+      'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/'
+      'products/$id.json?auth=$_token',
     );
     final response = await http.patch(
       url,
@@ -115,7 +135,7 @@ class ProductsProvider with ChangeNotifier {
     );
     if (response.statusCode >= 400) {
       throw const HttpException(
-          'An error occurred updation an item on product_provider');
+          'An error occurred updating an item on product_provider');
     } else {
       final prodIndex = _products.indexWhere((prod) => prod.id == id);
       _products[prodIndex] = newProduct;
@@ -125,7 +145,8 @@ class ProductsProvider with ChangeNotifier {
 
   Future<void> deleteProduct(String id) async {
     final url = Uri.parse(
-      'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json',
+      'https://glitter-15a40-default-rtdb.europe-west1.firebasedatabase.app/'
+      'products/$id.json?auth=$_token',
     );
     final prodIndex = _products.indexWhere((prod) => prod.id == id);
     dynamic excitingProd = _products[prodIndex];

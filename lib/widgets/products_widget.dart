@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:my_shop/providers/auth_provider.dart';
 import 'package:my_shop/providers/cart_provider.dart';
 import 'package:my_shop/providers/product_provider.dart';
 import 'package:my_shop/screens/product_details_screen.dart';
@@ -13,6 +14,10 @@ class ProductItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartData = Provider.of<CartProvider>(context, listen: false);
+    final auth = Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    );
     return GestureDetector(
         onTap: () {
           Navigator.of(context).pushNamed(
@@ -33,15 +38,22 @@ class ProductItemWidget extends StatelessWidget {
                         padding: const EdgeInsets.all(10),
                         onPressed: () async {
                           try {
-                            await product.toggleFavorites();
+                            await product.toggleFavorites(
+                              auth.token,
+                              auth.userId,
+                            );
                             Fluttertoast.cancel();
                             Fluttertoast.showToast(
-                                msg: 'Added one item to favorites');
+                                msg: product.isFavorite
+                                    ? 'One item Added to favorites'
+                                    : 'One item removed from favorites');
                           } catch (e) {
                             print('error on adding item to favorites $e');
                             Fluttertoast.cancel();
                             Fluttertoast.showToast(
-                                msg: 'Failed to add to favorites');
+                                msg: product.isFavorite
+                                    ? 'Failed to remove from favorites'
+                                    : 'Failed to add to favorites');
                           }
                         },
                         icon: Icon(

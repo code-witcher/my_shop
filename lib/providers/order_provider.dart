@@ -21,14 +21,22 @@ class Order {
 
 class OrdersProvider with ChangeNotifier {
   List<Order> _orders = [];
+  String? _token;
+  String? _userId;
 
   List<Order> get orders {
     return [..._orders];
   }
 
+  void update(String? token, String? userId, List<Order> orders) {
+    _orders = orders;
+    _token = token;
+    _userId = userId;
+  }
+
   Future<void> fetchOrders() async {
     final url = Uri.parse('https://glitter-15a40-default-rtdb.europe-west1.'
-        'firebasedatabase.app/orders.json');
+        'firebasedatabase.app/orders/$_userId.json?auth=$_token');
     final response = await http.get(url);
     if (json.decode(response.body) == null) {
       return;
@@ -65,7 +73,7 @@ class OrdersProvider with ChangeNotifier {
     required List<Cart> carts,
   }) async {
     final url = Uri.parse('https://glitter-15a40-default-rtdb.europe-west1.'
-        'firebasedatabase.app/orders.json');
+        'firebasedatabase.app/orders/$_userId.json?auth=$_token');
     final date = DateTime.now();
     if (total > 0) {
       final response = await http.post(

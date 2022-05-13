@@ -218,22 +218,25 @@ class _OrderButtonState extends State<OrderButton> {
                       total: widget.cartData.totalPrice,
                       carts: widget.cartsValue,
                     );
+                    try {
+                      await widget.cartData.clearCart();
+                    } catch (e) {
+                      print('Error clearing the cart $e');
+                      Fluttertoast.cancel();
+                      Fluttertoast.showToast(msg: 'Error clearing the cart');
+                    }
+                    setState(() {
+                      _isLoading = false;
+                    });
                     Fluttertoast.cancel();
                     Fluttertoast.showToast(msg: 'Ordered successfully');
                   } catch (e) {
                     print('Error adding the cart to orders $e');
-                    Fluttertoast.cancel();
-                    Fluttertoast.showToast(msg: 'Error adding them to orders');
-                  }
-                  try {
-                    await widget.cartData.clearCart();
                     setState(() {
                       _isLoading = false;
                     });
-                  } catch (e) {
-                    print('Error clearing the cart $e');
                     Fluttertoast.cancel();
-                    Fluttertoast.showToast(msg: 'Error clearing the cart');
+                    Fluttertoast.showToast(msg: 'Error adding them to orders');
                   }
                 },
           child: _isLoading
