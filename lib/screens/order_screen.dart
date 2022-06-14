@@ -24,7 +24,14 @@ class _OrderScreenState extends State<OrderScreen> {
     Provider.of<OrdersProvider>(
       context,
       listen: false,
-    ).fetchOrders().then((value) => _isLoading = false).catchError((e) {
+    ).fetchOrders().then((value) {
+      setState(() {
+        _isLoading = false;
+      });
+    }).catchError((e) {
+      setState(() {
+        _isLoading = false;
+      });
       print('Error fetching orders on order_screen $e');
     });
     super.initState();

@@ -69,9 +69,15 @@ class ProductItemWidget extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30),
-                  child: Image.network(
-                    _productData.imageUrl,
-                    fit: BoxFit.cover,
+                  child: Hero(
+                    tag: _productData.id,
+                    child: FadeInImage(
+                      placeholder: const AssetImage('images/placeholder.png'),
+                      image: NetworkImage(
+                        _productData.imageUrl,
+                      ),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),

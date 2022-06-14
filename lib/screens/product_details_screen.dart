@@ -29,9 +29,12 @@ class ProductDetailsScreen extends StatelessWidget {
           Container(
             height: double.infinity,
             width: double.infinity,
-            child: Image.network(
-              product.imageUrl,
-              fit: BoxFit.cover,
+            child: Hero(
+              tag: product.id,
+              child: Image.network(
+                product.imageUrl,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           Padding(
@@ -39,7 +42,8 @@ class ProductDetailsScreen extends StatelessWidget {
             child: Card(
               elevation: 6,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Row(
                 children: [
                   Container(
@@ -67,7 +71,7 @@ class ProductDetailsScreen extends StatelessWidget {
                             softWrap: true,
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         Padding(

@@ -30,8 +30,8 @@ class SplashScreen extends StatelessWidget {
             children: [
               const CircleAvatar(
                 radius: 70,
-                backgroundImage: NetworkImage(
-                  'https://64.media.tumblr.com/03beab1e7ba71b5fc6e31b91f9f42c18/f39ef18f19d2b20b-68/s400x600/ace2a6fecf2087e07979d702b4f94a110dc53d24.pnj',
+                backgroundImage: AssetImage(
+                  'images/splash.png',
                 ),
               ),
               const SizedBox(

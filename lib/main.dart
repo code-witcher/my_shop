@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:my_shop/models/custom_page_transtion.dart';
 import 'package:my_shop/providers/auth_provider.dart';
 import 'package:my_shop/providers/cart_provider.dart';
 import 'package:my_shop/providers/order_provider.dart';
@@ -94,6 +95,10 @@ class MyApp extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            pageTransitionsTheme: PageTransitionsTheme(builders: {
+              TargetPlatform.iOS: CustomPageTransition(),
+              TargetPlatform.android: CustomPageTransition(),
+            }),
           ),
           home: authData.isAuth
               ? const ProductsScreen()
